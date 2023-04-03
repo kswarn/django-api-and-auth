@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from uuid import uuid4
 
 
 class Promotion(models.Model):
@@ -109,10 +110,17 @@ class Address(models.Model):
 
 
 class Cart(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    # when you assign a foreign key a related_name, what it means is that, the Cart model will have a field called items instead
+    # of cartitem_set
+
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField()
+    quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+
+    class Meta:
+        unique_together = [["cart", "product"]]
